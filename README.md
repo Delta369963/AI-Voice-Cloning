@@ -269,7 +269,7 @@ Frontend Playback & Download
 
 # Screenshots
 
-(Add frontend screenshots here later.)
+![alt text](image.png)
 
 ---
 
