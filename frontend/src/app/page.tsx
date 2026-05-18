@@ -1,22 +1,44 @@
 "use client";
 
 import { useState } from "react";
+
 import API from "@/services/api";
+
+import toast, { Toaster } from "react-hot-toast";
+
+import {
+  FaCloudUploadAlt,
+  FaSpinner
+} from "react-icons/fa";
 
 export default function Home() {
 
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] =
+    useState<File | null>(null);
 
-  const [text, setText] = useState("");
+  const [text, setText] =
+    useState("");
 
-  const [audioUrl, setAudioUrl] = useState("");
+  const [audioUrl, setAudioUrl] =
+    useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
+
+  const [speed, setSpeed] =
+    useState(1.2);
+
+  const [generationTime, setGenerationTime] =
+    useState<number | null>(null);
 
   const handleGenerate = async () => {
 
     if (!file || !text) {
-      alert("Please upload a file and enter text.");
+
+      toast.error(
+        "Please upload a file and enter text."
+      );
+
       return;
     }
 
@@ -24,7 +46,16 @@ export default function Home() {
 
       setLoading(true);
 
-      // Upload file
+      const start = performance.now();
+
+      toast.loading(
+        "Generating AI voice...",
+        {
+          id: "generate"
+        }
+      );
+
+      // Upload File
       const formData = new FormData();
 
       formData.append("file", file);
@@ -34,22 +65,25 @@ export default function Home() {
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data"
+            "Content-Type":
+              "multipart/form-data"
           }
         }
       );
 
-      const filename = uploadResponse.data.filename;
+      const filename =
+        uploadResponse.data.filename;
 
-      // Generate voice
-      const generateResponse = await API.post(
-        "/generate",
-        {
-          text,
-          filename,
-          speed: 1.2
-        }
-      );
+      // Generate Voice
+      const generateResponse =
+        await API.post(
+          "/generate",
+          {
+            text,
+            filename,
+            speed
+          }
+        );
 
       const generatedFile =
         generateResponse.data.audio_file;
@@ -59,11 +93,35 @@ export default function Home() {
 
       setAudioUrl(finalAudioUrl);
 
+      const end = performance.now();
+
+      setGenerationTime(
+        ((end - start) / 1000)
+          .toFixed(2) as unknown as number
+      );
+
+      toast.success(
+        "Voice generated successfully.",
+        {
+          id: "generate"
+        }
+      );
+
+      // Auto Play
+      const audio = new Audio(finalAudioUrl);
+
+      audio.play();
+
     } catch (error) {
 
       console.error(error);
 
-      alert("Voice generation failed.");
+      toast.error(
+        "Voice generation failed.",
+        {
+          id: "generate"
+        }
+      );
 
     } finally {
 
@@ -85,99 +143,181 @@ export default function Home() {
       p-10
     ">
 
+      <Toaster position="top-right" />
+
       <div className="
         w-full
         max-w-2xl
         bg-zinc-900
-        rounded-2xl
+        rounded-3xl
         p-8
         shadow-2xl
         space-y-6
       ">
 
-        <h1 className="
-          text-4xl
-          font-bold
-          text-center
-        ">
-          AI Voice Cloning
-        </h1>
+        {/* Title */}
+        <div className="text-center space-y-2">
 
-        {/* File Upload */}
-        <div className="space-y-3">
+          <h1 className="
+            text-5xl
+            font-extrabold
+            bg-gradient-to-r
+            from-blue-400
+            to-cyan-300
+            bg-clip-text
+            text-transparent
+          ">
+            AI Voice Cloning
+          </h1>
 
-          <label
-            htmlFor="audio-upload"
-            className="
-              flex
-              flex-col
-              items-center
-              justify-center
-              w-full
-              h-40
-              border-2
-              border-dashed
-              border-zinc-600
-              rounded-2xl
-              cursor-pointer
-              hover:border-blue-500
-              hover:bg-zinc-800/50
-              transition
-              text-zinc-300
-            "
-          >
-
-            <div className="text-center space-y-2">
-
-              <p className="text-xl font-semibold">
-                Upload Voice Sample
-              </p>
-
-              <p className="text-sm text-zinc-400">
-                WAV or MP3 • Clear single-speaker audio
-              </p>
-
-              {
-                file && (
-                  <p className="text-green-400 font-medium">
-                    Selected: {file.name}
-                  </p>
-                )
-              }
-
-            </div>
-
-          </label>
-
-          <input
-            id="audio-upload"
-            type="file"
-            accept=".wav,.mp3"
-            onChange={(e) => {
-              if (e.target.files) {
-                setFile(e.target.files[0]);
-              }
-            }}
-            className="hidden"
-          />
+          <p className="
+            text-zinc-400
+          ">
+            Generate realistic cloned speech
+            using XTTS v2
+          </p>
 
         </div>
 
-        {/* Text Input */}
-        <textarea
-          placeholder="Enter text to generate..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
+        {/* Upload Box */}
+        <label
+          htmlFor="audio-upload"
           className="
+            flex
+            flex-col
+            items-center
+            justify-center
             w-full
-            h-40
-            bg-zinc-800
-            rounded-xl
-            p-4
-            text-white
-            outline-none
+            h-52
+            border-2
+            border-dashed
+            border-zinc-600
+            rounded-3xl
+            cursor-pointer
+            hover:border-blue-500
+            hover:bg-zinc-800/40
+            transition
+            text-zinc-300
           "
+        >
+
+          <FaCloudUploadAlt
+            className="
+              text-6xl
+              mb-4
+              text-blue-400
+            "
+          />
+
+          <p className="
+            text-xl
+            font-semibold
+          ">
+            Upload Voice Sample
+          </p>
+
+          <p className="
+            text-sm
+            text-zinc-400
+            mt-2
+          ">
+            WAV or MP3 • Single Speaker
+          </p>
+
+          {
+            file && (
+              <p className="
+                mt-4
+                text-green-400
+                font-medium
+              ">
+                Selected: {file.name}
+              </p>
+            )
+          }
+
+        </label>
+
+        <input
+          id="audio-upload"
+          type="file"
+          accept=".wav,.mp3"
+          className="hidden"
+          onChange={(e) => {
+
+            if (e.target.files) {
+
+              setFile(
+                e.target.files[0]
+              );
+
+              toast.success(
+                "Audio uploaded."
+              );
+            }
+          }}
         />
+
+        {/* Text Area */}
+        <div className="space-y-2">
+
+          <textarea
+            placeholder="
+Enter text to generate...
+            "
+            value={text}
+            onChange={(e) =>
+              setText(e.target.value)
+            }
+            className="
+              w-full
+              h-40
+              bg-zinc-800
+              rounded-2xl
+              p-4
+              text-white
+              outline-none
+              resize-none
+            "
+          />
+
+          <div className="
+            flex
+            justify-between
+            text-sm
+            text-zinc-400
+          ">
+
+            <span>
+              {text.length} characters
+            </span>
+
+            <span>
+              Speed: {speed.toFixed(1)}x
+            </span>
+
+          </div>
+
+        </div>
+
+        {/* Speed Slider */}
+        <div className="space-y-2">
+
+          <input
+            type="range"
+            min="0.5"
+            max="2"
+            step="0.1"
+            value={speed}
+            onChange={(e) =>
+              setSpeed(
+                parseFloat(e.target.value)
+              )
+            }
+            className="w-full"
+          />
+
+        </div>
 
         {/* Generate Button */}
         <button
@@ -188,27 +328,63 @@ export default function Home() {
             bg-blue-500
             hover:bg-blue-600
             transition
-            rounded-xl
+            rounded-2xl
             py-4
             font-bold
             text-lg
+            flex
+            items-center
+            justify-center
+            gap-3
+            disabled:opacity-60
           "
         >
+
           {
-            loading
-            ? "Generating..."
-            : "Generate Voice"
+            loading ? (
+              <>
+                <FaSpinner
+                  className="
+                    animate-spin
+                  "
+                />
+                Generating...
+              </>
+            ) : (
+              "Generate Voice"
+            )
           }
+
         </button>
+
+        {/* Generation Time */}
+        {
+          generationTime && (
+            <p className="
+              text-center
+              text-zinc-400
+            ">
+              Generated in
+              {" "}
+              {generationTime}s
+            </p>
+          )
+        }
 
         {/* Audio Player */}
         {
           audioUrl && (
-            <div className="space-y-4">
+            <div className="
+              space-y-4
+              pt-4
+            ">
 
               <audio
                 controls
-                className="w-full"
+                autoPlay
+                className="
+                  w-full
+                "
               >
                 <source
                   src={audioUrl}
@@ -225,7 +401,7 @@ export default function Home() {
                   bg-green-500
                   hover:bg-green-600
                   transition
-                  rounded-xl
+                  rounded-2xl
                   py-3
                   font-bold
                 "
