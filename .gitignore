@@ -1,0 +1,20 @@
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+
+# Uploaded/generated audio
+backend/app/uploads/
+backend/app/outputs/
+
+# Node
+frontend/node_modules/
+
+# Next.js
+frontend/.next/
+
+# Environment files
+.env
+
+# macOS
+.DS_Store
