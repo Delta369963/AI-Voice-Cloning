@@ -89,7 +89,7 @@ export default function Home() {
         generateResponse.data.audio_file;
 
       const finalAudioUrl =
-        `http://127.0.0.1:8000/audio/${generatedFile}`;
+        `http://127.0.0.1:8000/audio/${generatedFile}?t=${Date.now()}`;
 
       setAudioUrl(finalAudioUrl);
 
@@ -106,11 +106,6 @@ export default function Home() {
           id: "generate"
         }
       );
-
-      // Auto Play
-      const audio = new Audio(finalAudioUrl);
-
-      audio.play();
 
     } catch (error) {
 
@@ -380,6 +375,7 @@ Enter text to generate...
             ">
 
               <audio
+                key={audioUrl}
                 controls
                 autoPlay
                 className="
