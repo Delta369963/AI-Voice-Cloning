@@ -269,7 +269,7 @@ Frontend Playback & Download
 
 # Screenshots
 
-![alt text](image.png)
+![alt text](voice-cloning-ui-v2.png)
 
 ---
 
